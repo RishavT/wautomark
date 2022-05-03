@@ -16,19 +16,23 @@ from moviepy.audio.fx.audio_loop import audio_loop
 class VideoManager:
     def __init__(
         self,
+        fps=24,
         watermark_path="",
         watermark_text="",
         audio_path="",
         output_dir="output",
         final_width=1280,
         big_watermark_scale=0.30,
+        uid=None,
     ):
+        self.fps = fps
         self.watermark_path = watermark_path
         self.watermark_text = watermark_text
         self.audio_path = audio_path
         self.output_dir = output_dir
         self.final_width = final_width
         self.big_watermark_scale = big_watermark_scale
+        self.uid = uid
         if not os.path.isdir(self.output_dir):
             os.mkdir(self.output_dir)
 
@@ -45,7 +49,7 @@ class VideoManager:
         with open("results.txt", "w") as thefile:
             return json.dump(value, thefile)
 
-    def add(self, filepath, preview=False):
+    def add(self, original_filepath, filepath, preview=False):
         """Does the following:
         1. Resize the video to match self.final_width
         2. Add a watermark to the video
@@ -53,11 +57,11 @@ class VideoManager:
         4. Save to self.output_dir
         """
 
-        if filepath in self.videos:
-            output_path = f"{self.videos[filepath]}.1.mp4"
+        if original_filepath in self.videos:
+            output_path = f"{self.videos[original_filepath]}.{self.uid}.mp4"
         else:
             output_path = os.path.join(
-                self.output_dir, f"{len(self.videos.keys()) + 1}.mp4"
+                self.output_dir, f"{len(self.videos.keys()) + 1}_{self.uid}.mp4"
             )
 
         # Create moviepie obj without audio
@@ -106,9 +110,9 @@ class VideoManager:
         if preview:
             clip.preview()
             return
-        clip.write_videofile(output_path, fps=24, codec="libx264")
+        clip.write_videofile(output_path, fps=self.fps, codec="libx264")
         videos = self.videos
-        videos[filepath] = output_path
+        videos[original_filepath] = output_path
         self.videos = videos
 
     def add_folder(self, folderpath, *args, extension=None, **kwargs):
