@@ -26,12 +26,24 @@ class VideoManager:
         self.watermark_path = watermark_path
         self.watermark_text = watermark_text
         self.audio_path = audio_path
-        self.videos = []
         self.output_dir = output_dir
         self.final_width = final_width
         self.big_watermark_scale = big_watermark_scale
         if not os.path.isdir(self.output_dir):
             os.mkdir(self.output_dir)
+
+    @property
+    def videos(self):
+        try:
+            with open("results.txt") as thefile:
+                return json.load(thefile)
+        except Exception as e:
+            return []
+
+    @videos.setter
+    def videos(self, value):
+        with open("results.txt", "w") as thefile:
+            return json.dump(value, thefile)
 
     def add(self, filepath, preview=False):
         """Does the following:
@@ -90,10 +102,7 @@ class VideoManager:
             clip.preview()
             return
         clip.write_videofile(output_path, fps=24, codec="libx264")
-        self.videos.append((filepath, output_path))
-
-        with open("results.txt", "w") as thefile:
-            json.dump(self.videos, thefile)
+        self.videos = self.videos + [[filepath, output_path]]
 
     def add_folder(self, folderpath, *args, extension=None, **kwargs):
         """Adds all files inside a folder. You can filter by extension."""
