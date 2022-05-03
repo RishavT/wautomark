@@ -9,6 +9,7 @@ moviepy = "*"
 [dev-packages]
 pylint = "*"
 black = "*"
+pygame = "*"
 
 [requires]
 python_version = "3.10"
