@@ -39,6 +39,7 @@ class VideoManager:
         # Add a watermark
         watermark = ImageClip(self.watermark_path)
         watermark = watermark.resize((clip.w, clip.w * watermark.h / watermark.w))
+        watermark = watermark.set_pos("center")
         duration = clip.duration
         clip = CompositeVideoClip([clip, watermark])
         clip.duration = duration
