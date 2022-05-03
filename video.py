@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+from datetime import date
 from moviepy.editor import (
     VideoFileClip,
     AudioFileClip,
@@ -49,6 +50,21 @@ class VideoManager:
         with open("results.txt", "w") as thefile:
             return json.dump(value, thefile)
 
+    @classmethod
+    def append_to_filepath(cls, filepath, *args):
+        """Appends a string to the file name before the extension. You can pass
+        everything that you want to append as subsequent args after the
+        filepath
+
+        Example:
+            cls.append_to_filepath("hello/world.txt", "a", "b")
+            will return hello/worldab.txt
+        """
+        no_ext, ext = os.path.splitext(filepath)
+        for to_append in args:
+            no_ext += to_append
+        return no_ext + ext
+
     def add(self, original_filepath, filepath, preview=False):
         """Does the following:
         1. Resize the video to match self.final_width
@@ -58,10 +74,14 @@ class VideoManager:
         """
 
         if original_filepath in self.videos:
-            output_path = f"{self.videos[original_filepath]}.{self.uid}.mp4"
+            # output_path = f"{self.videos[original_filepath]}.{self.uid}.mp4"
+            output_path = self.append_to_filepath(
+                self.videos[original_filepath], self.uid, "_", str(date.today())
+            )
         else:
             output_path = os.path.join(
-                self.output_dir, f"{len(self.videos.keys()) + 1}_{self.uid}.mp4"
+                self.output_dir,
+                f"{len(self.videos.keys()) + 1}_{self.uid}_{str(date.today())}.mp4",
             )
 
         # Create moviepie obj without audio
