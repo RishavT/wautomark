@@ -38,7 +38,7 @@ class VideoManager:
             with open("results.txt") as thefile:
                 return json.load(thefile)
         except Exception as e:
-            return []
+            return {}
 
     @videos.setter
     def videos(self, value):
@@ -53,7 +53,12 @@ class VideoManager:
         4. Save to self.output_dir
         """
 
-        output_path = os.path.join(self.output_dir, f"{len(self.videos) + 1}.mp4")
+        if filepath in self.videos:
+            output_path = f"{self.videos[filepath]}.1.mp4"
+        else:
+            output_path = os.path.join(
+                self.output_dir, f"{len(self.videos.keys()) + 1}.mp4"
+            )
 
         # Create moviepie obj without audio
         clip = VideoFileClip(filepath, audio=False)
@@ -102,7 +107,9 @@ class VideoManager:
             clip.preview()
             return
         clip.write_videofile(output_path, fps=24, codec="libx264")
-        self.videos = self.videos + [[filepath, output_path]]
+        videos = self.videos
+        videos[filepath] = output_path
+        self.videos = videos
 
     def add_folder(self, folderpath, *args, extension=None, **kwargs):
         """Adds all files inside a folder. You can filter by extension."""
