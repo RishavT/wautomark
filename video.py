@@ -109,7 +109,7 @@ if __name__ == "__main__":
     watermark_path = "watermark.png"
     watermark_text = "team4adventure"
     audio_path = "audio.mp3"
-    preview = sys.argv[1] == "preview"
+    preview = len(sys.argv) > 1 and sys.argv[1] == "preview"
     vm = VideoManager(
         watermark_path=watermark_path,
         watermark_text=watermark_text,
