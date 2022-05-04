@@ -140,7 +140,8 @@ class VideoManager:
         for filepath in os.listdir(folderpath):
             if extension and not filepath.lower().endswith(extension):
                 continue
-            self.add(os.path.join(folderpath, filepath), *args, **kwargs)
+            filepath = os.path.join(folderpath, filepath)
+            self.add(filepath, filepath, *args, **kwargs)
 
 
 if __name__ == "__main__":
@@ -154,5 +155,6 @@ if __name__ == "__main__":
         watermark_path=watermark_path,
         watermark_text=watermark_text,
         audio_path=audio_path,
+        uid="helloworld",
     )
     vm.add_folder(folderpath, extension=extension, preview=preview)
