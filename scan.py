@@ -77,19 +77,22 @@ def get_mp4s(folder):
     return mp4s
 
 
+def should_add(folder):
+    # Check if this drive needs to be added
+    try:
+        with open(
+            os.path.join(folder, "wautomark_add"), encoding="utf-8"
+        ) as file:
+            return file.read().lower().strip() == "yes"
+    except FileNotFoundError:
+        return False
+
+
 def add_drive(drivename, mountpoint, upload_to_drive=True, force=False):
-    to_add = False
-    if not force:
-        # Check if this drive needs to be added
-        try:
-            with open(
-                os.path.join(mountpoint, "wautomark_add"), encoding="utf-8"
-            ) as file:
-                to_add = file.read().lower().strip() == "yes"
-        finally:
-            if not to_add:
-                logger.info(f"Skipping drive {drivename}: {mountpoint}")
-                return
+    # Check if this drive needs to be added
+    if not (force or should_add(mountpoint)):
+        logger.info(f"Skipping drive {drivename}: {mountpoint}")
+        return
 
     uid = get_uid()
     logger.info("Adding drive %s:%s, uid: %s", drivename, mountpoint, uid)
