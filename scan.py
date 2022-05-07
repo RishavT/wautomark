@@ -141,13 +141,15 @@ def add_drive(drivename, mountpoint, upload_to_gdrive=True, force=False):
         return
 
     if len(mp4s) > 0:
-        tg_logger.info("%s videos found today: %s", len(mp4s), str(date.today()))
+        tg_logger.info(
+            "We have found %s videos today: %s", len(mp4s), str(date.today())
+        )
     for source in mp4s:
         if source.endswith("processed.mp4"):
             logging.error("Duplicate file %s", source)
             continue
         tg_logger.info(
-            "Working on video %s : %s MB",
+            "We are working on this video now %s: %s MB",
             os.path.basename(source),
             os.path.getsize(source) / (1000 * 1000),
         )
@@ -168,12 +170,14 @@ def add_drive(drivename, mountpoint, upload_to_gdrive=True, force=False):
         converted_path = vm.add(source, dest, preview=False)
 
         tg_logger.info(
-            "Converted video %s. Final size: %s",
+            "We have finished converting video %s. Final filesize: %s MB",
             os.path.basename(source),
             os.path.getsize(converted_path) / (1000 * 1000),
         )
         if upload_to_gdrive:
-            tg_logger.info("Uploading %s to google drive.", os.path.basename(source))
+            tg_logger.info(
+                "We are uploading %s on google drive.", os.path.basename(source)
+            )
             logger.info(f"Uploading %s to drive", converted_path)
             file_id, folder_id = upload_to_folder(converted_path)
             logger.info(
@@ -183,13 +187,15 @@ def add_drive(drivename, mountpoint, upload_to_gdrive=True, force=False):
                 folder_id,
             )
             tg_logger.info(
-                "Uploaded %s to %s",
+                "Upload has finished: %s - %s",
                 os.path.basename(source),
                 get_folder_link_from_id(folder_id),
             )
 
         logger.info("Removing original file")
-        tg_logger.info("Deleting video from memory card %s", os.path.basename(source))
+        tg_logger.info(
+            "Now we will delete the video from memory card %s", os.path.basename(source)
+        )
         assert os.path.isfile(source)
         os.remove(source)
         shutil.move(

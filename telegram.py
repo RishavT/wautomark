@@ -1,8 +1,61 @@
+import logging
 from logging import config
+from logging.handlers import QueueHandler
 import json
+from uuid import uuid4
+from googletrans import Translator
+from python_telegram_logger.handlers import (
+    Handler,
+    LogMessageDispatcher,
+    Queue,
+    FORMATTERS,
+    HTML,
+)
 
 with open("telegram.json") as file:
     TELEGRAM_CONFIG = json.load(file)
+
+
+class HindiTelegramDispatcher(LogMessageDispatcher):
+    """Translates the messages to hindi first"""
+
+    src = "en"
+    dest = "hi"
+    translator = Translator()
+
+    def handle(self, record):
+        record.msg = self.translator.translate(
+            record.msg, src=self.src, dest=self.dest
+        ).text
+        return super().handle(record)
+
+
+class HindiTelegramHandler(Handler):
+    """Uses HindiTelegramDispatcher"""
+
+    def __init__(
+        self,
+        token: str,
+        chat_ids: list,
+        format: str = HTML,
+        disable_notifications: bool = False,
+        disable_preview: bool = False,
+    ):
+        queue = Queue()
+        QueueHandler.__init__(self, queue)
+
+        try:
+            formatter = FORMATTERS[format.lower()]
+        except Exception:
+            raise Exception("TelegramLogging. Unknown format '%s'" % format)
+
+        self.handler = HindiTelegramDispatcher(
+            token, chat_ids, disable_notifications, disable_preview
+        )
+        self.handler.setFormatter(formatter())
+        listener = logging.handlers.QueueListener(queue, self.handler)
+        listener.start()
+
 
 log_config = {
     "version": 1,
@@ -12,13 +65,19 @@ log_config = {
             "class": "python_telegram_logger.Handler",
             "token": TELEGRAM_CONFIG["token"],
             "chat_ids": TELEGRAM_CONFIG["log_chat_ids"],
-        }
+        },
+        "telegram_hindi": {
+            "class": "telegram.HindiTelegramHandler",
+            "token": TELEGRAM_CONFIG["token"],
+            "chat_ids": TELEGRAM_CONFIG["log_chat_ids_hindi"],
+        },
     },
     "loggers": {
         "tg": {
             "level": "INFO",
             "handlers": [
                 "telegram",
+                "telegram_hindi",
             ],
         }
     },
