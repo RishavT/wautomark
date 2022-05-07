@@ -233,3 +233,6 @@ if __name__ == "__main__":
     except Exception as e:
         tg_logger.error("An error has occured")
         tg_logger.exception(e)
+        import time
+
+        time.sleep(20)
