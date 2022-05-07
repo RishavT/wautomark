@@ -21,6 +21,9 @@ logger = logging.getLogger("wautomark")
 logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler(sys.stdout))
 
+tg_logger = logging.getLogger("tg")
+tg_logger.addHandler(logging.StreamHandler(sys.stdout))
+
 
 def get_uid() -> str:
     """Returns a unique prefix for all the files"""
@@ -137,10 +140,17 @@ def add_drive(drivename, mountpoint, upload_to_gdrive=True, force=False):
         fail(drivename, mountpoint, uid)
         return
 
+    if len(mp4s) > 0:
+        tg_logger.info("%s videos found today: %s", len(mp4s), str(date.today()))
     for source in mp4s:
         if source.endswith("processed.mp4"):
             logging.error("Duplicate file %s", source)
             continue
+        tg_logger.info(
+            "Working on video %s : %s MB",
+            os.path.basename(source),
+            os.path.getsize(source) / (1000 * 1000),
+        )
         filename = os.path.split(source)[1]
         dest = os.path.join(unique_input_dir, filename)
         shutil.copy(source, dest)
@@ -157,21 +167,35 @@ def add_drive(drivename, mountpoint, upload_to_gdrive=True, force=False):
         )
         converted_path = vm.add(source, dest, preview=False)
 
+        tg_logger.info(
+            "Converted video %s. Final size: %s",
+            os.path.basename(source),
+            os.path.getsize(converted_path) / (1000 * 1000),
+        )
         if upload_to_gdrive:
+            tg_logger.info("Uploading %s to google drive.", os.path.basename(source))
             logger.info(f"Uploading %s to drive", converted_path)
             file_id, folder_id = upload_to_folder(converted_path)
             logger.info(
-                "Uploaded %s to %s",
+                "Uploaded %s | %s to %s",
+                os.path.basename(source),
                 os.path.basename(converted_path),
+                folder_id,
+            )
+            tg_logger.info(
+                "Uploaded %s to %s",
+                os.path.basename(source),
                 get_folder_link_from_id(folder_id),
             )
 
         logger.info("Removing original file")
+        tg_logger.info("Deleting video from memory card %s", os.path.basename(source))
         assert os.path.isfile(source)
         os.remove(source)
         shutil.move(
             dest, os.path.join(PROCESSED_DIRECTORY, f"{filename}.{uid}.processed.mp4")
         )
+        tg_logger.info("Finished processing %s", os.path.basename(source))
 
 
 def scan():

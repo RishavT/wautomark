@@ -14,11 +14,16 @@ log_config = {
             "chat_ids": TELEGRAM_CONFIG["log_chat_ids"],
         }
     },
-    "root": {
-        "level": "INFO",
-        "handlers": ["telegram",]
-    }
+    "loggers": {
+        "tg": {
+            "level": "INFO",
+            "handlers": [
+                "telegram",
+            ],
+        }
+    },
 }
+
 
 def set_config():
     config.dictConfig(config=log_config)
