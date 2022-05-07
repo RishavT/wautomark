@@ -9,7 +9,7 @@ cp ./* /prj
 apt update -y
 
 # Install dev utils
-RUN apt install tmux vim -y
+apt install tmux vim -y
 
 # Install python3 and pip
 apt install python3 python3-pip -y
