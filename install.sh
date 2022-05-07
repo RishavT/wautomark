@@ -30,6 +30,9 @@ source ~/.bashrc
 pip install pipenv
 pipenv sync
 
+# Fix imagemagick permissions
+sudo sed -i 's/none/read \| write/g' /etc/ImageMagick-6/policy.xml
+
 # Enable the service
 cp ./wautomark.service /etc/systemd/system/wautomark.service
 systemctl enable wautomark
