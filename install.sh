@@ -16,6 +16,7 @@ apt install tmux vim -y
 apt install python3 python3-pip -y
 
 # Set up pip env
+pip install pip
 pipenv sync
 
 # Enable the service
