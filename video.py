@@ -134,6 +134,7 @@ class VideoManager:
         videos = self.videos
         videos[original_filepath] = output_path
         self.videos = videos
+        return output_path
 
     def add_folder(self, folderpath, *args, extension=None, **kwargs):
         """Adds all files inside a folder. You can filter by extension."""

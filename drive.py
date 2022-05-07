@@ -23,6 +23,11 @@ def get_pydrive2_service():
     return GoogleDrive(auth)
 
 
+def get_folder_link_from_id(folder_id):
+    """Returns the drive link given a folder ID"""
+    return f"https://drive.google.com/drive/folders/{folder_id}"
+
+
 def upload(local_path, pyd_service):
     """Uploads a file and returns the file ID"""
     file = pyd_service.CreateFile({"title": os.path.basename(local_path)})
@@ -56,7 +61,7 @@ def upload_to_folder(local_path, folder_id=None, pyd_service=None):
     return file_id, folder_id
 
 
-def main():
+def test():
     """Uploads the given file (1st arg in cmd) to the root folder and prints
     the file id"""
     filepath = sys.argv[1]
@@ -65,4 +70,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    test()
