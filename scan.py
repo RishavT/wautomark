@@ -103,6 +103,8 @@ def add_drive(drivename, mountpoint, upload_to_drive=True, force=False):
     unique_input_dir = os.path.join(INPUT_DIRECTORY, uid)
     try:
         os.mkdir(unique_input_dir)
+    except FileExistsError:
+        pass
     except Exception as e:
         logger.exception(e)
         fail(drivename, mountpoint, uid)
