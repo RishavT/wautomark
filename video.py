@@ -123,8 +123,10 @@ class VideoManager:
 
         # Add audio
         audio = AudioFileClip(self.audio_path)
-        # audio = audio_loop(audio, duration=clip.duration)
+        if duration > audio.duration:
+            audio = audio_loop(audio, duration=duration)
         clip = clip.set_audio(audio)
+        clip.duration = duration
 
         # Preview or Save the video
         if preview:
