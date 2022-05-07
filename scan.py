@@ -1,6 +1,5 @@
 """Scans for new hard drives and adds watermarks videos"""
 
-import time
 import logging
 import sys
 import os
@@ -208,7 +207,6 @@ def add_drive(drivename, mountpoint, upload_to_gdrive=True, force=False):
 
 def scan():
     """Scans and returns new drives"""
-    tg_logger.info("Startup Successful")
     setup()
     new_drives = get_drives() - get_initial_drives()
     for drive in new_drives:
@@ -235,5 +233,3 @@ if __name__ == "__main__":
     except Exception as e:
         tg_logger.error("An error has occured")
         tg_logger.exception(e)
-    tg_logger.info("Shutting down")
-    time.sleep(15)
