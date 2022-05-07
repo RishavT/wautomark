@@ -6,6 +6,7 @@ import os
 import shutil
 from uuid import uuid4
 from video import VideoManager
+from drive import upload_to_folder, get_folder_link_from_id
 
 OUTPUT_DIRECTORY = os.path.join(os.getenv("HOME"), "video_output")
 INPUT_DIRECTORY = os.path.join(os.getenv("HOME"), "video_input")
@@ -71,7 +72,7 @@ def get_mp4s(folder):
     return mp4s
 
 
-def add_drive(drivename, mountpoint):
+def add_drive(drivename, mountpoint, upload_to_drive=True):
     uid = uuid4().hex
     logger.info("Adding drive %s:%s, uid: %s", drivename, mountpoint, uid)
 
@@ -107,13 +108,23 @@ def add_drive(drivename, mountpoint):
             output_dir=OUTPUT_DIRECTORY,
             uid=uid,
         )
-        vm.add(source, dest, preview=False)
+        converted_path = vm.add(source, dest, preview=False)
+
+        if upload_to_drive:
+            logger.info(f"Uploading %s to drive", converted_path)
+            file_id, folder_id = upload_to_folder(converted_path)
+            logger.info(
+                "Uploaded %s to %s",
+                os.path.basename(converted_path),
+                get_folder_link_from_id(folder_id),
+            )
 
         logger.info("Removing original file")
         assert os.path.isfile(source)
         os.remove(source)
-        shutil.move(dest, os.path.join(PROCESSED_DIRECTORY,
-                                       f"{filename}.{uid}.processed.mp4"))
+        shutil.move(
+            dest, os.path.join(PROCESSED_DIRECTORY, f"{filename}.{uid}.processed.mp4")
+        )
 
 
 def scan_and_add():
@@ -123,3 +134,13 @@ def scan_and_add():
         add_drive(*drive)
     cleanup()
     process_ghosts()
+
+
+def test(folder_name):
+    """Tests adding a folder"""
+    drivename = "testdrive"
+    add_drive(drivename, folder_name)
+
+
+if __name__ == "__main__":
+    test(sys.argv[1])
