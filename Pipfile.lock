@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "effb5852a74b672c677728bbaab70ffa3a2e0d30298ee3ee959ea5a8cd60db44"
+            "sha256": "be43ef1ed2d9d64a3352d2df6001dc5b9903fd402e9760e95a87439a589e4266"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -243,7 +243,7 @@
                 "sha256:fade0d4f4d292b6f39951b6836d7a3c7ef5b2347f3c420cd9820a1d90d794802",
                 "sha256:fdf3c08bce27132395d3c3ba1503cac12e17282358cb4bddc25cc46b0aca07aa"
             ],
-            "markers": "python_version != '2.7'",
+            "markers": "python_version >= '2.7'",
             "version": "==1.22.3"
         },
         "oauth2client": {
@@ -408,6 +408,13 @@
             ],
             "markers": "python_version >= '3.1'",
             "version": "==3.0.8"
+        },
+        "python-telegram-logger": {
+            "hashes": [
+                "sha256:0242609fc5534338b2076a950a4033acf6c919a1b851077472814fa9a97e7d58"
+            ],
+            "index": "pypi",
+            "version": "==1.4"
         },
         "pyyaml": {
             "hashes": [

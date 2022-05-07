@@ -9,6 +9,7 @@ google-api-python-client = "*"
 google-auth-httplib2 = "*"
 google-auth-oauthlib = "*"
 pydrive2 = "*"
+python-telegram-logger = "*"
 
 [dev-packages]
 pylint = "*"

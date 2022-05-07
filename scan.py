@@ -8,6 +8,9 @@ import shutil
 from datetime import date
 from video import VideoManager
 from drive import upload_to_folder, get_folder_link_from_id
+from telegram import set_config
+
+set_config()
 
 OUTPUT_DIRECTORY = os.path.join(os.getenv("HOME"), "video_output")
 INPUT_DIRECTORY = os.path.join(os.getenv("HOME"), "video_input")
