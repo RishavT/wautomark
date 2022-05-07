@@ -93,7 +93,7 @@ def should_add(folder):
     return has_gopro_videos
 
 
-def add_drive(drivename, mountpoint, upload_to_drive=True, force=False):
+def add_drive(drivename, mountpoint, upload_to_gdrive=True, force=False):
     # Check if this drive needs to be added
     if not (force or should_add(mountpoint)):
         logger.info(f"Skipping drive {drivename}: {mountpoint}")
@@ -138,7 +138,7 @@ def add_drive(drivename, mountpoint, upload_to_drive=True, force=False):
         )
         converted_path = vm.add(source, dest, preview=False)
 
-        if upload_to_drive:
+        if upload_to_gdrive:
             logger.info(f"Uploading %s to drive", converted_path)
             file_id, folder_id = upload_to_folder(converted_path)
             logger.info(
