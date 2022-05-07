@@ -3,6 +3,7 @@
 import logging
 import sys
 import os
+import pickle
 import shutil
 from datetime import date
 from video import VideoManager
@@ -11,16 +12,30 @@ from drive import upload_to_folder, get_folder_link_from_id
 OUTPUT_DIRECTORY = os.path.join(os.getenv("HOME"), "video_output")
 INPUT_DIRECTORY = os.path.join(os.getenv("HOME"), "video_input")
 PROCESSED_DIRECTORY = os.path.join(os.getenv("HOME"), "processed_raw")
-INITIAL = set()
+INITIAL_DRIVES_FILE = os.path.join(os.getenv("HOME"), "initial_drives")
 
 logger = logging.getLogger("wautomark")
 logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler(sys.stdout))
 
 
-def get_uid():
+def get_uid() -> str:
     """Returns a unique prefix for all the files"""
     return f"t4a_videos_{str(date.today())}"
+
+
+def get_initial_drives() -> set:
+    try:
+        with open(INITIAL_DRIVES_FILE, "rb") as file:
+            return set(pickle.load(file))
+    except (FileNotFoundError, pickle.UnpicklingError):
+        return set()
+
+
+def set_initial_drives(data: set):
+    os.path.isfile(INITIAL_DRIVES_FILE) and os.remove(INITIAL_DRIVES_FILE)
+    with open(INITIAL_DRIVES_FILE, "wb") as file:
+        pickle.dump(data, file)
 
 
 def get_drives():
@@ -56,7 +71,8 @@ def cleanup():
 
 def setup():
     logging.info("setting up")
-    INITIAL.update(get_drives())
+    if os.getenv("SET_INITIAL_DRIVES"):
+        set_initial_drives(get_drives())
     for directory in [
         OUTPUT_DIRECTORY,
         INPUT_DIRECTORY,
@@ -158,8 +174,9 @@ def add_drive(drivename, mountpoint, upload_to_gdrive=True, force=False):
 def scan():
     """Scans and returns new drives"""
     setup()
-    new_drives = get_drives() - INITIAL
+    new_drives = get_drives() - get_initial_drives()
     for drive in new_drives:
+        logger.info("drive found: %s", drive)
         add_drive(*drive)
     cleanup()
     process_ghosts()
@@ -172,4 +189,7 @@ def test(folder_name):
 
 
 if __name__ == "__main__":
-    test(sys.argv[1])
+    if sys.argv[1] == "scan":
+        scan()
+    else:
+        test(sys.argv[1])
