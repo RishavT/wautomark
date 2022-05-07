@@ -78,7 +78,7 @@ def get_mp4s(folder):
 
 
 def should_add(folder):
-    # Check if this drive needs to be added
+    """Check if this drive needs to be added"""
     try:
         with open(os.path.join(folder, "wautomark_add"), encoding="utf-8") as file:
             if file.read().lower().strip() == "yes":
