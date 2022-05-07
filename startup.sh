@@ -1,6 +1,10 @@
 # Startup script
+# Run as root
 
 source $HOME/.bashrc
+
+# Start udiskie
+(ps -ef | grep -v grep | grep udiskies) || udiskie &
 
 # Make sure we're in this directory
 cd $(dirname ${BASH_SOURCE[0]})
