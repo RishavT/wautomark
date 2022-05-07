@@ -24,4 +24,4 @@ ADD sa.json .
 ADD drive.json .
 ADD telegram.json .
 
-CMD bash
+CMD bash startup.sh
