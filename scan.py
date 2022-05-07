@@ -72,7 +72,20 @@ def get_mp4s(folder):
     return mp4s
 
 
-def add_drive(drivename, mountpoint, upload_to_drive=True):
+def add_drive(drivename, mountpoint, upload_to_drive=True, force=False):
+    to_add = False
+    if not force:
+        # Check if this drive needs to be added
+        try:
+            with open(
+                os.path.join(mountpoint, "wautomark_add"), encoding="utf-8"
+            ) as file:
+                to_add = file.read().lower().strip() == "yes"
+        finally:
+            if not to_add:
+                logger.info(f"Skipping drive {drivename}: {mountpoint}")
+                return
+
     uid = uuid4().hex
     logger.info("Adding drive %s:%s, uid: %s", drivename, mountpoint, uid)
 
@@ -127,7 +140,8 @@ def add_drive(drivename, mountpoint, upload_to_drive=True):
         )
 
 
-def scan_and_add():
+def scan():
+    """Scans and returns new drives"""
     setup()
     new_drives = get_drives() - INITIAL
     for drive in new_drives:
