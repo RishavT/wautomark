@@ -4,6 +4,7 @@ ls ./sa.json || (echo "sa.json needs to exist" && exit -1)
 ls ./telegram.json || (echo "telegram.json needs to exist" && exit -1)
 ls ./drive.json || (echo "drive.json needs to exist" && exit -1)
 cp ./* /prj
+cd /prj
 
 # Update
 apt update -y
