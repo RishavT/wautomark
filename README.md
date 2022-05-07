@@ -1,7 +1,8 @@
 Automatically watermark videos
 
 ## Set up
-Requirements: pipenv, ffmpeg, imagemagick
+Requirements: pipenv, ffmpeg, imagemagick, a telegram bot added to a group, a
+google service account to upload to google drive
 
 ```
 pipenv shell  # Initiates the pipenv shell
@@ -9,7 +10,11 @@ pipenv sync  # Installs dependencies
 pipenv sync --dev # Installs dev dependencies
 ```
 
-For testing, edit the data towards the end of `video.py` (in the `if __name__
-== "__main__" block`) and run either of the following:
-1. `python video.py preview` - Will show a live preview of the new file
-2. `python video.py` - Will convert the file and save in the `output` directory
+## Running locally without docker
+
+1. Create the JSON files - `sa.json`, `drive.json` and `telegram.json`. For
+   example json files, contact me.
+2. Make sure no external USB drives are attached (that you want to use with
+   this tool), and run `SET_INITIAL_DRIVES=yes python scan.py setup`
+3. Connect your gopro memory card via usb
+4. Run `python scan.py scan`

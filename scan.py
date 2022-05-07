@@ -39,6 +39,7 @@ def get_initial_drives() -> set:
 
 
 def set_initial_drives(data: set):
+    logger.info("Scanning for initial drives")
     os.path.isfile(INITIAL_DRIVES_FILE) and os.remove(INITIAL_DRIVES_FILE)
     with open(INITIAL_DRIVES_FILE, "wb") as file:
         pickle.dump(data, file)
@@ -224,5 +225,7 @@ def test(folder_name):
 if __name__ == "__main__":
     if sys.argv[1] == "scan":
         scan()
+    elif sys.argv[1] == "setup":
+        setup()
     else:
         test(sys.argv[1])
