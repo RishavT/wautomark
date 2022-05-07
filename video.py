@@ -1,7 +1,6 @@
 import os
 import sys
 import json
-from datetime import date
 from moviepy.editor import (
     VideoFileClip,
     AudioFileClip,
@@ -76,12 +75,13 @@ class VideoManager:
         if original_filepath in self.videos:
             # output_path = f"{self.videos[original_filepath]}.{self.uid}.mp4"
             output_path = self.append_to_filepath(
-                self.videos[original_filepath], self.uid, "_", str(date.today())
+                self.videos[original_filepath],
+                self.uid,
             )
         else:
             output_path = os.path.join(
                 self.output_dir,
-                f"{len(self.videos.keys()) + 1}_{self.uid}_{str(date.today())}.mp4",
+                f"{self.uid}_{len(self.videos.keys()) + 1}.mp4",
             )
 
         # Create moviepie obj without audio

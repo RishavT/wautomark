@@ -4,7 +4,7 @@ import logging
 import sys
 import os
 import shutil
-from uuid import uuid4
+from datetime import date
 from video import VideoManager
 from drive import upload_to_folder, get_folder_link_from_id
 
@@ -16,6 +16,11 @@ INITIAL = set()
 logger = logging.getLogger("wautomark")
 logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler(sys.stdout))
+
+
+def get_uid():
+    """Returns a unique prefix for all the files"""
+    return f"t4a_videos_{str(date.today())}"
 
 
 def get_drives():
@@ -86,7 +91,7 @@ def add_drive(drivename, mountpoint, upload_to_drive=True, force=False):
                 logger.info(f"Skipping drive {drivename}: {mountpoint}")
                 return
 
-    uid = uuid4().hex
+    uid = get_uid()
     logger.info("Adding drive %s:%s, uid: %s", drivename, mountpoint, uid)
 
     mp4s = get_mp4s(mountpoint)
