@@ -1,5 +1,7 @@
 # Startup script
 
+source $HOME/.bashrc
+
 # Make sure we're in this directory
 cd $(dirname ${BASH_SOURCE[0]})
 
