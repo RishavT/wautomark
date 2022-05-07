@@ -5,6 +5,10 @@ name = "pypi"
 
 [packages]
 moviepy = "*"
+google-api-python-client = "*"
+google-auth-httplib2 = "*"
+google-auth-oauthlib = "*"
+pydrive2 = "*"
 
 [dev-packages]
 pylint = "*"
