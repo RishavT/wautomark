@@ -80,12 +80,17 @@ def get_mp4s(folder):
 def should_add(folder):
     # Check if this drive needs to be added
     try:
-        with open(
-            os.path.join(folder, "wautomark_add"), encoding="utf-8"
-        ) as file:
-            return file.read().lower().strip() == "yes"
+        with open(os.path.join(folder, "wautomark_add"), encoding="utf-8") as file:
+            if file.read().lower().strip() == "yes":
+                return True
     except FileNotFoundError:
-        return False
+        pass
+
+    # Check if this is a go pro folder
+    has_gopro_videos = bool(
+        os.popen(f"find {folder} | grep -i 'gopro.*mp4'").read().strip()
+    )
+    return has_gopro_videos
 
 
 def add_drive(drivename, mountpoint, upload_to_drive=True, force=False):
