@@ -39,22 +39,28 @@ def add_parent(file_id, parent_id, pyd_service):
     return request.execute()
 
 
-def upload_to_folder(local_path, folder_id, pyd_service=None):
+def get_default_folder_id():
+    """Returns the default fodler ID (to upload files to) as configured in
+    DRIVE_JSON_PATH json"""
+    with open(DRIVE_JSON_PATH, encoding="utf-8") as file:
+        return json.load(file)["root_folder_id"]
+
+
+def upload_to_folder(local_path, folder_id=None, pyd_service=None):
     """Uploads a file and adds `folder_id` as its parent. Returns the newly
-    uploaded file ID"""
+    uploaded file ID, folder_id (as a tuple)"""
     pyd_service = pyd_service or get_pydrive2_service()
+    folder_id = folder_id or get_default_folder_id()
     file_id = upload(local_path, pyd_service)
     assert add_parent(file_id, folder_id, pyd_service)
-    return file_id
+    return file_id, folder_id
 
 
 def main():
     """Uploads the given file (1st arg in cmd) to the root folder and prints
     the file id"""
     filepath = sys.argv[1]
-    with open(DRIVE_JSON_PATH, encoding="utf-8") as file:
-        folder_id = json.load(file)["root_folder_id"]
-    file_id = upload_to_folder(filepath, folder_id)
+    file_id, folder_id = upload_to_folder(filepath)
     print(f"Uploaded {file_id} to {folder_id}")
 
 
