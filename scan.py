@@ -223,9 +223,13 @@ def test(folder_name):
 
 
 if __name__ == "__main__":
-    if sys.argv[1] == "scan":
-        scan()
-    elif sys.argv[1] == "setup":
-        setup()
-    else:
-        test(sys.argv[1])
+    try:
+        if sys.argv[1] == "scan":
+            scan()
+        elif sys.argv[1] == "setup":
+            setup()
+        else:
+            test(sys.argv[1])
+    except Exception as e:
+        tg_logger.error("An error has occured")
+        tg_logger.exception(e)
