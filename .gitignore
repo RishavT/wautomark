@@ -130,3 +130,5 @@ dmypy.json
 
 input/**
 output/**
+results.txt
+*TEMP*.mp3
