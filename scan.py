@@ -1,5 +1,6 @@
 """Scans for new hard drives and adds watermarks videos"""
 
+import time
 import logging
 import sys
 import os
@@ -233,3 +234,4 @@ if __name__ == "__main__":
     except Exception as e:
         tg_logger.error("An error has occured")
         tg_logger.exception(e)
+    time.sleep(20)
