@@ -130,7 +130,7 @@ dmypy.json
 
 input/**
 output/**
-results.txt
+results.txt*
 *TEMP*.mp3
 drive.json
 sa.json
