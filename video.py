@@ -166,6 +166,7 @@ class VideoManager:
             clip.preview()
             return
         clip.write_videofile(self.converted_filepath, fps=self.fps, codec="libx264")
+        self.converted_hash = self.hashit(self.converted_filepath)
         videos = self.videos
         videos[self.original_filepath] = self.to_dict()
         self.videos = videos
