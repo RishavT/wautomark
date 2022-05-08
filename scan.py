@@ -227,7 +227,7 @@ if __name__ == "__main__":
         else:
             test(sys.argv[1])
     except Exception as e:
-        tg_logger.error("An error has occured")
-        tg_logger.exception(e)
+        tg_logger.error("An error has occured %s", str(e))
+        logger.exception(e)
     logger.info("Sleeping for 20s before exiting")
     time.sleep(20)
