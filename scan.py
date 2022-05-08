@@ -135,18 +135,16 @@ def add_drive(drivename, mountpoint, upload_to_gdrive=True, force=False):
         fail(drivename, mountpoint, uid)
         return
 
-    if len(mp4s) > 0:
+    total = len(mp4s)
+    if total > 0:
+        tg_logger.info("We have found %s videos today: %s", total, str(date.today()))
+    for i, source in enumerate(mp4s):
         tg_logger.info(
-            "We have found %s videos today: %s", len(mp4s), str(date.today())
-        )
-    for source in mp4s:
-        if source.endswith("processed.mp4"):
-            logger.error("Duplicate file %s", source)
-            continue
-        tg_logger.info(
-            "We are working on this video now %s: %s MB",
+            "We are working on this video now %s: %s MB (%s/%s)",
             os.path.basename(source),
             os.path.getsize(source) / (1000 * 1000),
+            i + 1,
+            total,
         )
         filename = os.path.split(source)[1]
         dest = os.path.join(unique_input_dir, filename)
@@ -166,7 +164,7 @@ def add_drive(drivename, mountpoint, upload_to_gdrive=True, force=False):
             converted_path = vm.add(source, dest, preview=False)
         except VideoManager.VideoAlreadyConverted as exc:
             tg_logger.info(str(exc))
-            converted_path = exc.video["converted_path"]
+            converted_path = exc.video["converted_filepath"]
 
         tg_logger.info(
             "We have finished converting video %s. Final filesize: %s MB",
@@ -231,4 +229,5 @@ if __name__ == "__main__":
     except Exception as e:
         tg_logger.error("An error has occured")
         tg_logger.exception(e)
+    logger.info("Sleeping for 20s before exiting")
     time.sleep(20)
