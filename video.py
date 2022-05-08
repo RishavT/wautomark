@@ -9,11 +9,26 @@ from moviepy.editor import (
     ImageClip,
 )
 from moviepy.audio.fx.audio_loop import audio_loop
+from loggers import logger, tg_logger
 
 """Code to process videos"""
 
 
 class VideoManager:
+
+    serialize_fields = [
+        "original_filepath",
+        "copied_filepath",
+        "converted_filepath",
+        "original_hash",
+        "converted_hash",
+    ]
+
+    class VideoAlreadyConverted(ValueError):
+        def __init__(self, *args, video=None, **kwargs):
+            self.video = video
+            super().__init__(*args, **kwargs)
+
     def __init__(
         self,
         fps=24,
@@ -33,6 +48,12 @@ class VideoManager:
         self.final_width = final_width
         self.big_watermark_scale = big_watermark_scale
         self.uid = uid
+        self.original_filepath = None
+        self.copied_filepath = None
+        self.converted_filepath = None
+        self.original_hash = None
+        self.converted_hash = None
+
         if not os.path.isdir(self.output_dir):
             os.mkdir(self.output_dir)
 
@@ -64,6 +85,16 @@ class VideoManager:
             no_ext += to_append
         return no_ext + ext
 
+    @classmethod
+    def hashit(cls, path):
+        return os.popen(f"md5sum {path}").read().split()[0]
+
+    def to_dict(self):
+        the_dict = {}
+        for field in self.serialize_fields:
+            the_dict[field] = getattr(self, field)
+        return the_dict
+
     def add(self, original_filepath, filepath, preview=False):
         """Does the following:
         1. Resize the video to match self.final_width
@@ -72,17 +103,19 @@ class VideoManager:
         4. Save to self.output_dir
         """
 
-        if original_filepath in self.videos:
-            # output_path = f"{self.videos[original_filepath]}.{self.uid}.mp4"
-            output_path = self.append_to_filepath(
-                self.videos[original_filepath],
-                self.uid,
-            )
-        else:
-            output_path = os.path.join(
-                self.output_dir,
-                f"{self.uid}_{len(self.videos.keys()) + 1}.mp4",
-            )
+        self.original_filepath = original_filepath
+        self.copied_filepath = filepath
+        self.original_hash = self.hashit(original_filepath)
+        for video in self.videos.values():
+            if self.original_hash == video["original_hash"]:
+                original_basename = os.path.basename(video["original_filepath"])
+                raise self.VideoAlreadyConverted(
+                    f"{original_basename} has already been converted", video=video
+                )
+        self.converted_filepath = os.path.join(
+            self.output_dir,
+            f"{self.uid}_{len(self.videos.keys()) + 1}.mp4",
+        )
 
         # Create moviepie obj without audio
         clip = VideoFileClip(filepath, audio=False)
@@ -132,11 +165,12 @@ class VideoManager:
         if preview:
             clip.preview()
             return
-        clip.write_videofile(output_path, fps=self.fps, codec="libx264")
+        clip.write_videofile(self.converted_filepath, fps=self.fps, codec="libx264")
+        self.converted_hash = self.hashit(self.converted_filepath)
         videos = self.videos
-        videos[original_filepath] = output_path
+        videos[self.original_filepath] = self.to_dict()
         self.videos = videos
-        return output_path
+        return self.converted_filepath
 
     def add_folder(self, folderpath, *args, extension=None, **kwargs):
         """Adds all files inside a folder. You can filter by extension."""
@@ -144,7 +178,11 @@ class VideoManager:
             if extension and not filepath.lower().endswith(extension):
                 continue
             filepath = os.path.join(folderpath, filepath)
-            self.add(filepath, filepath, *args, **kwargs)
+            try:
+                self.add(filepath, filepath, *args, **kwargs)
+            except self.VideoAlreadyConverted as exc:
+                logger.exception(exc)
+                logger.info(exc.video)
 
 
 if __name__ == "__main__":

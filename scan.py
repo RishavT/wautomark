@@ -1,7 +1,6 @@
 """Scans for new hard drives and adds watermarks videos"""
 
 import time
-import logging
 import sys
 import os
 import pickle
@@ -10,6 +9,7 @@ from datetime import date
 from video import VideoManager
 from drive import upload_to_folder, get_folder_link_from_id
 from telegram import set_config
+from loggers import logger, tg_logger
 
 set_config()
 
@@ -17,13 +17,6 @@ OUTPUT_DIRECTORY = os.path.join(os.getenv("HOME"), "video_output")
 INPUT_DIRECTORY = os.path.join(os.getenv("HOME"), "video_input")
 PROCESSED_DIRECTORY = os.path.join(os.getenv("HOME"), "processed_raw")
 INITIAL_DRIVES_FILE = os.path.join(os.getenv("HOME"), "initial_drives")
-
-logger = logging.getLogger("wautomark")
-logger.setLevel(logging.INFO)
-logger.addHandler(logging.StreamHandler(sys.stdout))
-
-tg_logger = logging.getLogger("tg")
-tg_logger.addHandler(logging.StreamHandler(sys.stdout))
 
 
 def get_uid() -> str:
@@ -78,7 +71,7 @@ def cleanup():
 
 
 def setup():
-    logging.info("setting up")
+    logger.info("setting up")
     if os.getenv("SET_INITIAL_DRIVES"):
         set_initial_drives(get_drives())
     for directory in [
@@ -148,7 +141,7 @@ def add_drive(drivename, mountpoint, upload_to_gdrive=True, force=False):
         )
     for source in mp4s:
         if source.endswith("processed.mp4"):
-            logging.error("Duplicate file %s", source)
+            logger.error("Duplicate file %s", source)
             continue
         tg_logger.info(
             "We are working on this video now %s: %s MB",
@@ -169,7 +162,11 @@ def add_drive(drivename, mountpoint, upload_to_gdrive=True, force=False):
             output_dir=OUTPUT_DIRECTORY,
             uid=uid,
         )
-        converted_path = vm.add(source, dest, preview=False)
+        try:
+            converted_path = vm.add(source, dest, preview=False)
+        except VideoManager.VideoAlreadyConverted as exc:
+            tg_logger.info(str(exc))
+            converted_path = exc.video["converted_path"]
 
         tg_logger.info(
             "We have finished converting video %s. Final filesize: %s MB",
