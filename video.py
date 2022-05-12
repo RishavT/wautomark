@@ -106,12 +106,13 @@ class VideoManager:
         self.original_filepath = original_filepath
         self.copied_filepath = filepath
         self.original_hash = self.hashit(original_filepath)
-        for video in self.videos.values():
-            if self.original_hash == video["original_hash"]:
-                original_basename = os.path.basename(video["original_filepath"])
-                raise self.VideoAlreadyConverted(
-                    f"{original_basename} has already been converted", video=video
-                )
+        if not preview:
+            for video in self.videos.values():
+                if self.original_hash == video["original_hash"]:
+                    original_basename = os.path.basename(video["original_filepath"])
+                    raise self.VideoAlreadyConverted(
+                        f"{original_basename} has already been converted", video=video
+                    )
         self.converted_filepath = os.path.join(
             self.output_dir,
             f"{self.uid}_{len(self.videos.keys()) + 1}.mp4",
@@ -124,6 +125,8 @@ class VideoManager:
         clip = clip.resize((self.final_width, self.final_width * clip.h / clip.w))
 
         # Add a center watermark
+        duration = clip.duration
+
         center_watermark = ImageClip(self.watermark_path)
         center_watermark = center_watermark.resize(
             (
@@ -135,9 +138,6 @@ class VideoManager:
             )
         )
         center_watermark = center_watermark.set_pos("center")
-        duration = clip.duration
-        clip = CompositeVideoClip([clip, center_watermark])
-        clip.duration = duration
 
         # Add a bottom watermark
         bottom_watermark = TextClip(
@@ -151,13 +151,15 @@ class VideoManager:
             col_opacity=0.3,
         )
         bottom_watermark = bottom_watermark.set_pos(("center", "bottom"))
-        clip = CompositeVideoClip([clip, bottom_watermark])
+        clip = CompositeVideoClip([clip, center_watermark, bottom_watermark])
         clip.duration = duration
 
         # Add audio
         audio = AudioFileClip(self.audio_path)
         if duration > audio.duration:
             audio = audio_loop(audio, duration=duration)
+        else:
+            audio.duration = duration
         clip = clip.set_audio(audio)
         clip.duration = duration
 
@@ -165,7 +167,9 @@ class VideoManager:
         if preview:
             clip.preview()
             return
-        clip.write_videofile(self.converted_filepath, fps=self.fps, codec="libx264")
+        clip.write_videofile(
+            self.converted_filepath, fps=self.fps, threads=3, codec="libx264"
+        )
         self.converted_hash = self.hashit(self.converted_filepath)
         videos = self.videos
         videos[self.original_filepath] = self.to_dict()
