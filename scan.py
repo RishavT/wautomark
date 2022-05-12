@@ -71,11 +71,6 @@ def get_drives():
     return drives
 
 
-def process_ghosts():
-    # TODO implement this
-    pass
-
-
 def cleanup():
     logger.info("Cleaning up")
     paths = os.popen(f"find {INPUT_DIRECTORY}").read().split("\n")
@@ -229,12 +224,14 @@ def add_drive(drivename, mountpoint, upload_to_gdrive=True, force=True, poolit=T
     ]
     if poolit:
         singlearg_process_video = singleargs(process_video)
-        with concurrent.futures.ThreadPoolExecutor(
-            max_workers=cpu_count() + 1
-        ) as executor:
-            futures = executor.map(singlearg_process_video, argmap)
-            for f in futures:
-                pass
+        batch_size = max_workers = cpu_count() + 1
+        for i in range(0, len(argmap), batch_size):
+            start = i
+            end = i + batch_size
+            with concurrent.futures.ThreadPoolExecutor(batch_size) as executor:
+                futures = executor.map(singlearg_process_video, argmap[start:end])
+                for f in futures:
+                    pass
     else:
         for args in argmap:
             process_video(*args)
@@ -248,7 +245,6 @@ def scan():
         logger.info("drive found: %s", drive)
         add_drive(*drive)
     cleanup()
-    process_ghosts()
 
 
 def test(folder_name):
