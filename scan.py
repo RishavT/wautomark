@@ -4,6 +4,7 @@ import time
 import sys
 import os
 import pickle
+from multiprocessing import Pool
 import shutil
 from datetime import date
 from video import VideoManager
@@ -110,7 +111,68 @@ def should_add(folder):
     return has_gopro_videos
 
 
-def add_drive(drivename, mountpoint, upload_to_gdrive=True, force=False):
+def process_video(i, total, unique_input_dir, uid, upload_to_gdrive, source):
+    tg_logger.info(
+        "We are working on this video now %s: %s MB (%s/%s)",
+        os.path.basename(source),
+        os.path.getsize(source) / (1000 * 1000),
+        i + 1,
+        total,
+    )
+    filename = os.path.split(source)[1]
+    dest = os.path.join(unique_input_dir, filename)
+    shutil.copy(source, dest)
+
+    logger.info("Copied %s from drive to %s", filename, unique_input_dir)
+    logger.info("Converting")
+
+    vm = VideoManager(
+        watermark_path="watermark.png",
+        watermark_text=open("watermark.txt").read(),
+        audio_path="audio.mp3",
+        output_dir=OUTPUT_DIRECTORY,
+        uid=uid,
+    )
+    try:
+        converted_path = vm.add(source, dest, preview=False)
+    except VideoManager.VideoAlreadyConverted as exc:
+        tg_logger.info(str(exc))
+        converted_path = exc.video["converted_filepath"]
+
+    tg_logger.info(
+        "We have finished converting video %s. Final filesize: %s MB",
+        os.path.basename(source),
+        os.path.getsize(converted_path) / (1000 * 1000),
+    )
+    if upload_to_gdrive:
+        tg_logger.info("We are uploading %s on google drive.", os.path.basename(source))
+        logger.info(f"Uploading %s to drive", converted_path)
+        file_id, folder_id = upload_to_folder(converted_path)
+        logger.info(
+            "Uploaded %s | %s to %s",
+            os.path.basename(source),
+            os.path.basename(converted_path),
+            folder_id,
+        )
+        tg_logger.info(
+            "Upload has finished: %s - %s",
+            os.path.basename(source),
+            get_folder_link_from_id(folder_id),
+        )
+
+    logger.info("Removing original file")
+    tg_logger.info(
+        "Now we will delete the video from memory card %s", os.path.basename(source)
+    )
+    assert os.path.isfile(source)
+    os.remove(source)
+    shutil.move(
+        dest, os.path.join(PROCESSED_DIRECTORY, f"{filename}.{uid}.processed.mp4")
+    )
+    tg_logger.info("Finished processing %s", os.path.basename(source))
+
+
+def add_drive(drivename, mountpoint, upload_to_gdrive=True, force=False, pool=True):
     # Check if this drive needs to be added
     if not (force or should_add(mountpoint)):
         logger.info(f"Skipping drive {drivename}: {mountpoint}")
@@ -139,66 +201,7 @@ def add_drive(drivename, mountpoint, upload_to_gdrive=True, force=False):
     if total > 0:
         tg_logger.info("We have found %s videos today: %s", total, str(date.today()))
     for i, source in enumerate(mp4s):
-        tg_logger.info(
-            "We are working on this video now %s: %s MB (%s/%s)",
-            os.path.basename(source),
-            os.path.getsize(source) / (1000 * 1000),
-            i + 1,
-            total,
-        )
-        filename = os.path.split(source)[1]
-        dest = os.path.join(unique_input_dir, filename)
-        shutil.copy(source, dest)
-
-        logger.info("Copied %s from drive to %s", filename, unique_input_dir)
-        logger.info("Converting")
-
-        vm = VideoManager(
-            watermark_path="watermark.png",
-            watermark_text=open("watermark.txt").read(),
-            audio_path="audio.mp3",
-            output_dir=OUTPUT_DIRECTORY,
-            uid=uid,
-        )
-        try:
-            converted_path = vm.add(source, dest, preview=False)
-        except VideoManager.VideoAlreadyConverted as exc:
-            tg_logger.info(str(exc))
-            converted_path = exc.video["converted_filepath"]
-
-        tg_logger.info(
-            "We have finished converting video %s. Final filesize: %s MB",
-            os.path.basename(source),
-            os.path.getsize(converted_path) / (1000 * 1000),
-        )
-        if upload_to_gdrive:
-            tg_logger.info(
-                "We are uploading %s on google drive.", os.path.basename(source)
-            )
-            logger.info(f"Uploading %s to drive", converted_path)
-            file_id, folder_id = upload_to_folder(converted_path)
-            logger.info(
-                "Uploaded %s | %s to %s",
-                os.path.basename(source),
-                os.path.basename(converted_path),
-                folder_id,
-            )
-            tg_logger.info(
-                "Upload has finished: %s - %s",
-                os.path.basename(source),
-                get_folder_link_from_id(folder_id),
-            )
-
-        logger.info("Removing original file")
-        tg_logger.info(
-            "Now we will delete the video from memory card %s", os.path.basename(source)
-        )
-        assert os.path.isfile(source)
-        os.remove(source)
-        shutil.move(
-            dest, os.path.join(PROCESSED_DIRECTORY, f"{filename}.{uid}.processed.mp4")
-        )
-        tg_logger.info("Finished processing %s", os.path.basename(source))
+        process_video(i, total, unique_input_dir, uid, upload_to_gdrive, source)
 
 
 def scan():
