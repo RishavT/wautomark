@@ -4,13 +4,16 @@ import time
 import sys
 import os
 import pickle
-from multiprocessing import Pool
+from multiprocessing import cpu_count
+import functools
+import concurrent.futures
 import shutil
 from datetime import date
 from video import VideoManager
 from drive import upload_to_folder, get_folder_link_from_id
 from telegram import set_config
 from loggers import logger, tg_logger
+from db import Videos
 
 set_config()
 
@@ -18,7 +21,17 @@ OUTPUT_DIRECTORY = os.path.join(os.getenv("HOME"), "video_output")
 INPUT_DIRECTORY = os.path.join(os.getenv("HOME"), "video_input")
 PROCESSED_DIRECTORY = os.path.join(os.getenv("HOME"), "processed_raw")
 INITIAL_DRIVES_FILE = os.path.join(os.getenv("HOME"), "initial_drives")
+VideoDB = Videos()
 
+def singleargs(func):
+    """Wrapper so that you can provide a list of args to a function instead of
+    *args"""
+
+    @functools.wraps(func)
+    def wrapped(args):
+        return func(*args)
+
+    return wrapped
 
 def get_uid() -> str:
     """Returns a unique prefix for all the files"""
@@ -132,6 +145,9 @@ def process_video(i, total, unique_input_dir, uid, upload_to_gdrive, source):
         audio_path="audio.mp3",
         output_dir=OUTPUT_DIRECTORY,
         uid=uid,
+        get_new_idx=VideoDB.get_new_idx,
+        get_videos=VideoDB.get_videos,
+        update_videos=VideoDB.update_videos,
     )
     try:
         converted_path = vm.add(source, dest, preview=False)
@@ -170,9 +186,10 @@ def process_video(i, total, unique_input_dir, uid, upload_to_gdrive, source):
         dest, os.path.join(PROCESSED_DIRECTORY, f"{filename}.{uid}.processed.mp4")
     )
     tg_logger.info("Finished processing %s", os.path.basename(source))
+    return True
 
 
-def add_drive(drivename, mountpoint, upload_to_gdrive=True, force=False, pool=True):
+def add_drive(drivename, mountpoint, upload_to_gdrive=True, force=True, poolit=True):
     # Check if this drive needs to be added
     if not (force or should_add(mountpoint)):
         logger.info(f"Skipping drive {drivename}: {mountpoint}")
@@ -200,8 +217,20 @@ def add_drive(drivename, mountpoint, upload_to_gdrive=True, force=False, pool=Tr
     total = len(mp4s)
     if total > 0:
         tg_logger.info("We have found %s videos today: %s", total, str(date.today()))
-    for i, source in enumerate(mp4s):
-        process_video(i, total, unique_input_dir, uid, upload_to_gdrive, source)
+
+    argmap = [
+        (i, total, unique_input_dir, uid, upload_to_gdrive, source)
+        for i, source in enumerate(mp4s)
+    ]
+    if poolit:
+        singlearg_process_video = singleargs(process_video)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count() + 1) as executor:
+            futures = executor.map(singlearg_process_video, argmap)
+            for f in futures:
+                pass
+    else:
+        for args in argmap:
+            process_video(*args)
 
 
 def scan():

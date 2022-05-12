@@ -38,6 +38,9 @@ class VideoManager:
         output_dir="output",
         final_width=1280,
         big_watermark_scale=0.30,
+        get_new_idx=None,
+        get_videos=None,
+        update_videos=None,
         uid=None,
     ):
         self.fps = fps
@@ -53,22 +56,13 @@ class VideoManager:
         self.converted_filepath = None
         self.original_hash = None
         self.converted_hash = None
+        self.get_new_idx=get_new_idx
+        self.get_videos=get_videos
+        self.update_videos=update_videos
+
 
         if not os.path.isdir(self.output_dir):
             os.mkdir(self.output_dir)
-
-    @property
-    def videos(self):
-        try:
-            with open("results.txt") as thefile:
-                return json.load(thefile)
-        except Exception as e:
-            return {}
-
-    @videos.setter
-    def videos(self, value):
-        with open("results.txt", "w") as thefile:
-            return json.dump(value, thefile)
 
     @classmethod
     def append_to_filepath(cls, filepath, *args):
@@ -107,7 +101,7 @@ class VideoManager:
         self.copied_filepath = filepath
         self.original_hash = self.hashit(original_filepath)
         if not preview:
-            for video in self.videos.values():
+            for video in self.get_videos():
                 if self.original_hash == video["original_hash"]:
                     original_basename = os.path.basename(video["original_filepath"])
                     raise self.VideoAlreadyConverted(
@@ -115,7 +109,7 @@ class VideoManager:
                     )
         self.converted_filepath = os.path.join(
             self.output_dir,
-            f"{self.uid}_{len(self.videos.keys()) + 1}.mp4",
+            f"{self.uid}_{self.get_new_idx()}.mp4",
         )
 
         # Create moviepie obj without audio
@@ -171,9 +165,7 @@ class VideoManager:
             self.converted_filepath, fps=self.fps, threads=3, codec="libx264"
         )
         self.converted_hash = self.hashit(self.converted_filepath)
-        videos = self.videos
-        videos[self.original_filepath] = self.to_dict()
-        self.videos = videos
+        self.update_videos(self.original_filepath, self.to_dict())
         return self.converted_filepath
 
     def add_folder(self, folderpath, *args, extension=None, **kwargs):
