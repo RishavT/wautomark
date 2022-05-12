@@ -56,10 +56,9 @@ class VideoManager:
         self.converted_filepath = None
         self.original_hash = None
         self.converted_hash = None
-        self.get_new_idx=get_new_idx
-        self.get_videos=get_videos
-        self.update_videos=update_videos
-
+        self.get_new_idx = get_new_idx
+        self.get_videos = get_videos
+        self.update_videos = update_videos
 
         if not os.path.isdir(self.output_dir):
             os.mkdir(self.output_dir)
@@ -89,6 +88,11 @@ class VideoManager:
             the_dict[field] = getattr(self, field)
         return the_dict
 
+    def save_drive_file_id(self, file_id):
+        video = self.get_videos().get(self.original_filepath)
+        video["drive_id"] = file_id
+        self.update_videos(self.original_filepath, video)
+
     def add(self, original_filepath, filepath, preview=False):
         """Does the following:
         1. Resize the video to match self.final_width
@@ -101,7 +105,7 @@ class VideoManager:
         self.copied_filepath = filepath
         self.original_hash = self.hashit(original_filepath)
         if not preview:
-            for video in self.get_videos():
+            for key, video in self.get_videos().items():
                 if self.original_hash == video["original_hash"]:
                     original_basename = os.path.basename(video["original_filepath"])
                     raise self.VideoAlreadyConverted(

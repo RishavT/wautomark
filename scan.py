@@ -23,6 +23,7 @@ PROCESSED_DIRECTORY = os.path.join(os.getenv("HOME"), "processed_raw")
 INITIAL_DRIVES_FILE = os.path.join(os.getenv("HOME"), "initial_drives")
 VideoDB = Videos()
 
+
 def singleargs(func):
     """Wrapper so that you can provide a list of args to a function instead of
     *args"""
@@ -32,6 +33,7 @@ def singleargs(func):
         return func(*args)
 
     return wrapped
+
 
 def get_uid() -> str:
     """Returns a unique prefix for all the files"""
@@ -154,6 +156,8 @@ def process_video(i, total, unique_input_dir, uid, upload_to_gdrive, source):
     except VideoManager.VideoAlreadyConverted as exc:
         tg_logger.info(str(exc))
         converted_path = exc.video["converted_filepath"]
+        if exc.video.get("drive_id"):
+            return False
 
     tg_logger.info(
         "We have finished converting video %s. Final filesize: %s MB",
@@ -175,6 +179,7 @@ def process_video(i, total, unique_input_dir, uid, upload_to_gdrive, source):
             os.path.basename(source),
             get_folder_link_from_id(folder_id),
         )
+        vm.save_drive_file_id(file_id)
 
     logger.info("Removing original file")
     tg_logger.info(
@@ -224,7 +229,9 @@ def add_drive(drivename, mountpoint, upload_to_gdrive=True, force=True, poolit=T
     ]
     if poolit:
         singlearg_process_video = singleargs(process_video)
-        with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count() + 1) as executor:
+        with concurrent.futures.ThreadPoolExecutor(
+            max_workers=cpu_count() + 1
+        ) as executor:
             futures = executor.map(singlearg_process_video, argmap)
             for f in futures:
                 pass
