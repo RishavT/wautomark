@@ -9,7 +9,8 @@ from moviepy.editor import (
     ImageClip,
 )
 from moviepy.audio.fx.audio_loop import audio_loop
-from loggers import logger, tg_logger
+from loggers import logger, tg_logger, CustomProgressLogger
+from db import Videos
 
 """Code to process videos"""
 
@@ -166,7 +167,13 @@ class VideoManager:
             clip.preview()
             return
         clip.write_videofile(
-            self.converted_filepath, fps=self.fps, threads=3, codec="libx264"
+            self.converted_filepath,
+            fps=self.fps,
+            threads=3,
+            codec="libx264",
+            logger=CustomProgressLogger(
+                additional_loggers_prefix=f"{os.path.basename(self.original_filepath)}: "
+            ),
         )
         self.converted_hash = self.hashit(self.converted_filepath)
         self.update_videos(self.original_filepath, self.to_dict())
@@ -186,6 +193,7 @@ class VideoManager:
 
 
 if __name__ == "__main__":
+    VideoDB = Videos("test.txt")
     folderpath = "input"
     extension = "mp4"
     watermark_path = "watermark.png"
@@ -197,5 +205,8 @@ if __name__ == "__main__":
         watermark_text=watermark_text,
         audio_path=audio_path,
         uid="helloworld",
+        get_new_idx=VideoDB.get_new_idx,
+        get_videos=VideoDB.get_videos,
+        update_videos=VideoDB.update_videos,
     )
     vm.add_folder(folderpath, extension=extension, preview=preview)
