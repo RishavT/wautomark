@@ -1,8 +1,11 @@
 """Contains logging config"""
 
+from telegram import set_config
 import logging
 import sys
 from proglog import ProgressBarLogger, TqdmProgressBarLogger
+
+set_config()
 
 logger = logging.getLogger("wautomark")
 logger.setLevel(logging.INFO)
@@ -24,10 +27,6 @@ class CustomProgressLogger(TqdmProgressBarLogger):
         self.mybars = {}
         super().__init__(*args, **kwargs)
 
-    def log_additional_loggers(self, message):
-        for adlogger in self.additional_loggers:
-            adlogger.info(f"{self.additional_loggers_prefix}%s", message)
-
     def log(self, message):
         pass
 
@@ -42,9 +41,12 @@ class CustomProgressLogger(TqdmProgressBarLogger):
         old_prog_in_quarters = bar.get("prog_in_quarters", 0)
         if prog_in_quarters > old_prog_in_quarters:
             bar["prog_in_quarters"] = prog_in_quarters
-            self.log_additional_loggers(
-                f"Progress of our video conversion is: {prog_in_quarters * 25}%"
-            )
+            for adlogger in self.additional_loggers:
+                adlogger.info(
+                    "%s Progress of our video conversion is: %s %%",
+                    self.additional_loggers_prefix,
+                    str(prog_in_quarters * 25),
+                )
 
     def bars_callback(self, bar, attr, value, old_value=None):
         if bar != "t":
@@ -53,9 +55,8 @@ class CustomProgressLogger(TqdmProgressBarLogger):
             # This is the start of a new bar
             self.mybars[bar] = {
                 "total": value,
-                "index": 0,
+                "index": -1,
             }
-            self.log_additional_loggers("Progress of our video conversion is: 0%")
         elif attr == "index":
             self.mybars[bar]["index"] = value
-            self.log_bar_progress(bar)
+        self.log_bar_progress(bar)
