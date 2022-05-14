@@ -1,5 +1,6 @@
 """Contains logging config"""
 
+from datetime import datetime, timedelta
 from telegram import set_config
 import logging
 import sys
@@ -37,15 +38,17 @@ class CustomProgressLogger(TqdmProgressBarLogger):
         if not bar:
             return
         prog_in_percent = bar["index"] * 100.0 / bar["total"]
-        prog_in_quarters = int(prog_in_percent / 25)
-        old_prog_in_quarters = bar.get("prog_in_quarters", 0)
-        if prog_in_quarters > old_prog_in_quarters:
-            bar["prog_in_quarters"] = prog_in_quarters
+        last_log_time = bar.get("last_log_time")
+        current_log_time = datetime.now()
+        if last_log_time is None or (last_log_time - current_log_time) > timedelta(
+            minutes=2
+        ):
+            bar["last_log_time"] = current_log_time
             for adlogger in self.additional_loggers:
                 adlogger.info(
                     "%s Progress of our video conversion is: %s %%",
                     self.additional_loggers_prefix,
-                    str(prog_in_quarters * 25),
+                    str(prog_in_percent),
                 )
 
     def bars_callback(self, bar, attr, value, old_value=None):
