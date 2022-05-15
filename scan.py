@@ -186,7 +186,7 @@ def process_video(i, total, unique_input_dir, uid, upload_to_gdrive, source):
     return True
 
 
-def add_drive(drivename, mountpoint, upload_to_gdrive=True, force=True, poolit=True):
+def add_drive(drivename, mountpoint, upload_to_gdrive=True, force=True, poolit=False):
     # Check if this drive needs to be added
     if not (force or should_add(mountpoint)):
         logger.info(f"Skipping drive {drivename}: {mountpoint}")
