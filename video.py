@@ -32,12 +32,12 @@ class VideoManager:
 
     def __init__(
         self,
-        fps=24,
+        fps=30,
         watermark_path="",
         watermark_text="",
         audio_path="",
         output_dir="output",
-        final_width=1280,
+        final_height=1080,
         big_watermark_scale=0.30,
         get_new_idx=None,
         get_videos=None,
@@ -49,7 +49,7 @@ class VideoManager:
         self.watermark_text = watermark_text
         self.audio_path = audio_path
         self.output_dir = output_dir
-        self.final_width = final_width
+        self.final_height = final_height
         self.big_watermark_scale = big_watermark_scale
         self.uid = uid
         self.original_filepath = None
@@ -96,7 +96,7 @@ class VideoManager:
 
     def add(self, original_filepath, filepath, preview=False):
         """Does the following:
-        1. Resize the video to match self.final_width
+        1. Resize the video to match self.final_height
         2. Add a watermark to the video
         3. Replace audio with some random music
         4. Save to self.output_dir
@@ -120,8 +120,8 @@ class VideoManager:
         # Create moviepie obj without audio
         clip = VideoFileClip(filepath, audio=False)
 
-        # Resize the video to self.final_width
-        clip = clip.resize((self.final_width, self.final_width * clip.h / clip.w))
+        # Resize the video to self.final_height
+        clip = clip.resize((self.final_height * clip.w / clip.h), self.final_height)
 
         # Add a center watermark
         duration = clip.duration
