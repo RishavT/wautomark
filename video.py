@@ -94,7 +94,7 @@ class VideoManager:
         video["drive_id"] = file_id
         self.update_videos(self.original_filepath, video)
 
-    def add(self, original_filepath, filepath, preview=False):
+    def add(self, original_filepath, filepath, preview=False, overwrite=False):
         """Does the following:
         1. Resize the video to match self.final_height
         2. Add a watermark to the video
@@ -109,9 +109,11 @@ class VideoManager:
             for key, video in self.get_videos().items():
                 if self.original_hash == video["original_hash"]:
                     original_basename = os.path.basename(video["original_filepath"])
-                    raise self.VideoAlreadyConverted(
-                        f"{original_basename} has already been converted", video=video
-                    )
+                    if not overwrite:
+                        raise self.VideoAlreadyConverted(
+                            f"{original_basename} has already been converted",
+                            video=video,
+                        )
         self.converted_filepath = os.path.join(
             self.output_dir,
             f"{self.uid}_{self.get_new_idx()}.mp4",
@@ -209,4 +211,4 @@ if __name__ == "__main__":
         get_videos=VideoDB.get_videos,
         update_videos=VideoDB.update_videos,
     )
-    vm.add_folder(folderpath, extension=extension, preview=preview)
+    vm.add_folder(folderpath, extension=extension, preview=preview, overwrite=True)
