@@ -123,7 +123,11 @@ class VideoManager:
         clip = VideoFileClip(filepath, audio=False)
 
         # Resize the video to self.final_height
-        clip = clip.resize((self.final_height * clip.w / clip.h), self.final_height)
+        self.final_width = (clip.w / clip.h) * self.final_height
+        logger.info(
+            "%s x %s --> %s x %s", clip.w, clip.h, self.final_width, self.final_height
+        )
+        clip = clip.resize((self.final_width, self.final_height))
 
         # Add a center watermark
         duration = clip.duration
@@ -173,9 +177,9 @@ class VideoManager:
             fps=self.fps,
             threads=3,
             codec="libx264",
-            logger=CustomProgressLogger(
-                additional_loggers_prefix=f"{os.path.basename(self.original_filepath)}: "
-            ),
+            # logger=CustomProgressLogger(
+            #     additional_loggers_prefix=f"{os.path.basename(self.original_filepath)}: "
+            # ),
         )
         self.converted_hash = self.hashit(self.converted_filepath)
         self.update_videos(self.original_filepath, self.to_dict())
