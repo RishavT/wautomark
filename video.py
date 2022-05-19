@@ -177,9 +177,9 @@ class VideoManager:
             fps=self.fps,
             threads=3,
             codec="libx264",
-            # logger=CustomProgressLogger(
-            #     additional_loggers_prefix=f"{os.path.basename(self.original_filepath)}: "
-            # ),
+            logger=CustomProgressLogger(
+                additional_loggers_prefix=f"{os.path.basename(self.original_filepath)}: "
+            ),
         )
         self.converted_hash = self.hashit(self.converted_filepath)
         self.update_videos(self.original_filepath, self.to_dict())
