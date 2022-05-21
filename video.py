@@ -23,6 +23,7 @@ class VideoManager:
         "converted_filepath",
         "original_hash",
         "converted_hash",
+        "uid",
     ]
 
     class VideoAlreadyConverted(ValueError):
@@ -83,15 +84,17 @@ class VideoManager:
     def hashit(cls, path):
         return os.popen(f"md5sum {path}").read().split()[0]
 
-    def to_dict(self):
+    def to_dict(self, idx=None):
         the_dict = {}
         for field in self.serialize_fields:
             the_dict[field] = getattr(self, field)
+
+        the_dict["idx"] = idx
         return the_dict
 
     def save_drive_file_id(self, file_id):
         video = self.get_videos().get(self.original_filepath)
-        video["drive_id"] = file_id
+        video.drive_id = file_id
         self.update_videos(self.original_filepath, video)
 
     def add(self, original_filepath, filepath, preview=False, overwrite=False):
@@ -107,16 +110,17 @@ class VideoManager:
         self.original_hash = self.hashit(original_filepath)
         if not preview:
             for key, video in self.get_videos().items():
-                if self.original_hash == video["original_hash"]:
-                    original_basename = os.path.basename(video["original_filepath"])
+                if self.original_hash == video.original_hash:
+                    original_basename = os.path.basename(video.original_filepath)
                     if not overwrite:
                         raise self.VideoAlreadyConverted(
                             f"{original_basename} has already been converted",
                             video=video,
                         )
+        idx = self.get_new_idx()
         self.converted_filepath = os.path.join(
             self.output_dir,
-            f"{self.uid}_{self.get_new_idx()}.mp4",
+            f"{self.uid}_{idx}.mp4",
         )
 
         # Create moviepie obj without audio
@@ -182,7 +186,7 @@ class VideoManager:
             ),
         )
         self.converted_hash = self.hashit(self.converted_filepath)
-        self.update_videos(self.original_filepath, self.to_dict())
+        self.update_videos(self.original_filepath, self.to_dict(idx))
         return self.converted_filepath
 
     def add_folder(self, folderpath, *args, extension=None, **kwargs):

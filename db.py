@@ -9,7 +9,6 @@ def locked(lock):
     """Returns a wrappable function which locks the given function"""
 
     def wrapper(func):
-
         @functools.wraps(func)
         def wrapped(*args, **kwargs):
             try:
@@ -17,8 +16,31 @@ def locked(lock):
                 return func(*args, **kwargs)
             finally:
                 lock.release()
+
         return wrapped
+
     return wrapper
+
+
+class MyObj(dict):
+    """Wrapper around dict for easy setting and getting"""
+
+    def __getattribute__(self, name, *args, **kwargs):
+        try:
+            return super().__getattribute__(name, *args, **kwargs)
+        except AttributeError as exc:
+            if name in self:
+                return self[name]
+            raise exc
+
+    def __setattr__(self, name, value):
+        if name.startswith("__"):
+            return super().__setattr__(name, value)
+        self[name] = value
+
+
+class Video(MyObj):
+    pass
 
 
 class Videos:
@@ -41,7 +63,11 @@ class Videos:
         def func():
             try:
                 with open(self.filepath) as thefile:
-                    return json.load(thefile)
+                    raw_videos = json.load(thefile)
+                    videos = dict(
+                        (key, Video.from_dict(video))
+                        for (key, video) in raw_videos.items()
+                    )
             except Exception as e:
                 return {}
 
@@ -60,11 +86,11 @@ class Videos:
         return func()
 
     def update_videos(self, key, value):
-
         @locked(self.update_lock)
         def func():
             videos = self.get_videos()
             videos[key] = value
             with open(self.filepath, "w") as thefile:
                 return json.dump(videos, thefile)
+
         return func()
