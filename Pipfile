@@ -11,6 +11,7 @@ google-auth-oauthlib = "*"
 pydrive2 = "*"
 python-telegram-logger = "*"
 googletrans = "==3.1.0a0"
+youtube-upload = {editable = true, git = "https://github.com/tokland/youtube-upload"}
 
 [dev-packages]
 pylint = "*"
