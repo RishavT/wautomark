@@ -1,15 +1,18 @@
 """All things youtube"""
 
+
 def upload_video(filepath, video_name, video_description, tags=None):
     """Uploads a given file to youtube"""
     # TODO fill this
     raise NotImplementedError
 
-def get_name_from_filepath(filepath):
+
+def get_date_and_number_from_filepath(filepath):
     chunks = filepath.split("_")
     date = chunks[-2]
-    number = chunks[-1]
-    return f"River Session on {date} - #{number}"
+    idx = chunks[-1]
+    return date, idx
+
 
 def db_to_youtube(video: dict):
     """Uploads a given video object (look at db.py for more information about
@@ -18,11 +21,15 @@ def db_to_youtube(video: dict):
     if video.get("youtube_id"):
         return video
 
-    video["youtube_id"] = upload_video(
+    if not ("date" in video and "idx" in video):
+        date, idx = get_date_and_number_from_filepath(video.converted_filepath)
+        video.date = date
+        video.idx = idx
+
+    video.youtube_id = upload_video(
         video["converted_filepath"],
-        get_name_from_filepath(video["converted_filepath"]),
-        "",
-        tags=None)
+        f"River Session on {video.date} - #{video.idx}",
+        f"A video from our trip to the river on {video.date}",
+        tags=None,
+    )
     return video
-
-
