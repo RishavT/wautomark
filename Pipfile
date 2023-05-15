@@ -17,6 +17,8 @@ youtube-upload = {editable = true, git = "https://github.com/tokland/youtube-upl
 pylint = "*"
 black = "*"
 pygame = "*"
+pipenv-setup = "*"
+vistir = "==0.6.1"
 
 [requires]
 python_version = "3.10"
