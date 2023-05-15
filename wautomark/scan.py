@@ -1,5 +1,6 @@
 """Scans for new hard drives and adds watermarks videos"""
 
+import logging
 import time
 import sys
 import os
@@ -12,8 +13,12 @@ from datetime import date
 
 from .video import VideoManager
 from .drive import upload_to_folder, get_folder_link_from_id
-from .loggers import logger, tg_logger
 from .db import Videos
+
+# Override in main if you want
+logger = logging
+tg_logger = logging
+
 
 OUTPUT_DIRECTORY = os.path.join(os.getenv("HOME"), "video_output")
 INPUT_DIRECTORY = os.path.join(os.getenv("HOME"), "video_input")
@@ -252,6 +257,9 @@ def test(folder_name):
 
 
 if __name__ == "__main__":
+    del logger
+    del tg_logger
+    from .loggers import logger, tg_logger
     try:
         if sys.argv[1] == "scan":
             scan()
