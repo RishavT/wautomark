@@ -14,11 +14,13 @@ from python_telegram_logger.handlers import (
     HTML,
 )
 
-breakpoint()
-with open(
-    os.path.join(pathlib.Path(__file__).parent.resolve(), "telegram.json")
-) as file:
-    TELEGRAM_CONFIG = json.load(file)
+try:
+    with open(
+        os.path.join(pathlib.Path(__file__).parent.resolve(), "telegram.json")
+    ) as file:
+        TELEGRAM_CONFIG = json.load(file)
+except FileNotFoundError:
+    TELEGRAM_CONFIG = {}
 
 
 class HindiTelegramDispatcher(LogMessageDispatcher):
@@ -68,13 +70,13 @@ log_config = {
     "handlers": {
         "telegram": {
             "class": "python_telegram_logger.Handler",
-            "token": TELEGRAM_CONFIG["token"],
-            "chat_ids": TELEGRAM_CONFIG["log_chat_ids"],
+            "token": TELEGRAM_CONFIG.get("token"),
+            "chat_ids": TELEGRAM_CONFIG.get("log_chat_ids"),
         },
         "telegram_hindi": {
             "class": "wautomark.telegram.HindiTelegramHandler",
-            "token": TELEGRAM_CONFIG["token"],
-            "chat_ids": TELEGRAM_CONFIG["log_chat_ids_hindi"],
+            "token": TELEGRAM_CONFIG.get("token"),
+            "chat_ids": TELEGRAM_CONFIG.get("log_chat_ids_hindi"),
         },
     },
     "loggers": {
@@ -90,4 +92,5 @@ log_config = {
 
 
 def set_config():
-    config.dictConfig(config=log_config)
+    if TELEGRAM_CONFIG:
+        config.dictConfig(config=log_config)
