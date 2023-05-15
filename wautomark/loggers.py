@@ -1,10 +1,11 @@
 """Contains logging config"""
 
 from datetime import datetime, timedelta
-from telegram import set_config
 import logging
 import sys
 from proglog import ProgressBarLogger, TqdmProgressBarLogger
+
+from .telegram import set_config
 
 set_config()
 

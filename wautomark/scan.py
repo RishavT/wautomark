@@ -9,10 +9,11 @@ import functools
 import concurrent.futures
 import shutil
 from datetime import date
-from video import VideoManager
-from drive import upload_to_folder, get_folder_link_from_id
-from loggers import logger, tg_logger
-from db import Videos
+
+from .video import VideoManager
+from .drive import upload_to_folder, get_folder_link_from_id
+from .loggers import logger, tg_logger
+from .db import Videos
 
 OUTPUT_DIRECTORY = os.path.join(os.getenv("HOME"), "video_output")
 INPUT_DIRECTORY = os.path.join(os.getenv("HOME"), "video_input")

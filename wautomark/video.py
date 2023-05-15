@@ -9,8 +9,8 @@ from moviepy.editor import (
     ImageClip,
 )
 from moviepy.audio.fx.audio_loop import audio_loop
-from loggers import logger, tg_logger, CustomProgressLogger
-from db import Videos
+from .loggers import logger, tg_logger, CustomProgressLogger
+from .db import Videos
 
 """Code to process videos"""
 

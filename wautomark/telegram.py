@@ -1,4 +1,6 @@
+import os
 import logging
+import pathlib
 from logging import config
 from logging.handlers import QueueHandler
 import json
@@ -12,7 +14,10 @@ from python_telegram_logger.handlers import (
     HTML,
 )
 
-with open("telegram.json") as file:
+breakpoint()
+with open(
+    os.path.join(pathlib.Path(__file__).parent.resolve(), "telegram.json")
+) as file:
     TELEGRAM_CONFIG = json.load(file)
 
 
@@ -67,7 +72,7 @@ log_config = {
             "chat_ids": TELEGRAM_CONFIG["log_chat_ids"],
         },
         "telegram_hindi": {
-            "class": "telegram.HindiTelegramHandler",
+            "class": "wautomark.telegram.HindiTelegramHandler",
             "token": TELEGRAM_CONFIG["token"],
             "chat_ids": TELEGRAM_CONFIG["log_chat_ids_hindi"],
         },
